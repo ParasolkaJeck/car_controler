@@ -25,6 +25,9 @@
 /* USER CODE BEGIN Includes */
 #include "stm32g4xx_ll_system.h"
 #include "stm32g4xx_ll_rcc.h"
+#include "syslog.h"
+#include <stdio.h>
+#include "joystick.h"
 
 /* USER CODE END Includes */
 
@@ -52,7 +55,22 @@
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
-
+struct print_options
+{
+  uint8_t buffer[256];
+  uint8_t ptr;
+}print_options;
+int __io_putchar(int ch)
+{
+  print_options.buffer[print_options.ptr] = (uint8_t)ch;
+  print_options.ptr++;
+  if (print_options.buffer[print_options.ptr] == '\n' || print_options.ptr == sizeof(print_options.buffer) - 1)
+  {
+    HAL_UART_Transmit(&huart1, print_options.buffer, print_options.ptr, 0xFFFF);
+    print_options.ptr = 0;
+  }
+  return ch;
+}
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -92,6 +110,7 @@ int main(void)
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
   HAL_UART_Init(&huart1);
+  js_init();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -99,6 +118,13 @@ int main(void)
   while (1)
   {
     LL_GPIO_TogglePin(IND_LED_GPIO_Port, IND_LED_Pin);
+    syslog("Hello button state UP %d|DW %d|R %d|L %d|OK %d|",
+     js_is_button_pressed(JOYSTICK_BUTTON_UP),
+     js_is_button_pressed(JOYSTICK_BUTTON_DOWN),
+     js_is_button_pressed(JOYSTICK_BUTTON_RIGHT),
+     js_is_button_pressed(JOYSTICK_BUTTON_LEFT),
+     js_is_button_pressed(JOYSTICK_BUTTON_OK)
+     ); 
     HAL_Delay(100);
     /* USER CODE END WHILE */
 

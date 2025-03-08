@@ -68,6 +68,21 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define JB_KEY_0_Pin LL_GPIO_PIN_0
+#define JB_KEY_0_GPIO_Port GPIOA
+#define JB_KEY_0_EXTI_IRQn EXTI0_IRQn
+#define JB_KEY_1_Pin LL_GPIO_PIN_1
+#define JB_KEY_1_GPIO_Port GPIOA
+#define JB_KEY_1_EXTI_IRQn EXTI1_IRQn
+#define JB_KEY_2_Pin LL_GPIO_PIN_2
+#define JB_KEY_2_GPIO_Port GPIOA
+#define JB_KEY_2_EXTI_IRQn EXTI2_IRQn
+#define JB_KEY_3_Pin LL_GPIO_PIN_3
+#define JB_KEY_3_GPIO_Port GPIOA
+#define JB_KEY_3_EXTI_IRQn EXTI3_IRQn
+#define JB_KEY_4_Pin LL_GPIO_PIN_4
+#define JB_KEY_4_GPIO_Port GPIOA
+#define JB_KEY_4_EXTI_IRQn EXTI4_IRQn
 #define IND_LED_Pin LL_GPIO_PIN_4
 #define IND_LED_GPIO_Port GPIOB
 
