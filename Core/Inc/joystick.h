@@ -4,7 +4,7 @@
 #include "stdbool.h"
 #include <stdint.h>
 
-typedef void (*key_press_worker)(void);
+typedef void (*key_event_worker)(bool pressed);
 
 typedef enum
 {
@@ -18,4 +18,5 @@ typedef enum
 void js_init(void);
 bool js_is_button_pressed(joystick_buttons_t butt);
 void js_main(void);
-void js_add_worker(joystick_buttons_t butt, key_press_worker worker);
+void js_read_buttons(void);
+void js_add_worker(joystick_buttons_t butt, key_event_worker worker);

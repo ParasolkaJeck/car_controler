@@ -11,12 +11,12 @@ enum
     JS_RELESED,
 };
 
-// static uint32_t ports_masks[5];
 typedef struct
 {
-    uint32_t mask;
-    key_press_worker worker;
-    bool key_event;
+  uint32_t mask;
+  key_event_worker worker;
+  uint8_t key_event;
+  uint8_t prev_state;
 }key_ctx_t;
 
 key_ctx_t key_ctx[5];
@@ -34,6 +34,13 @@ void js_init(void)
     key_ctx[JOYSTICK_BUTTON_RIGHT].mask  = JB_KEY_0_Pin;
     key_ctx[JOYSTICK_BUTTON_UP].mask     = JB_KEY_1_Pin;
     key_ctx[JOYSTICK_BUTTON_DOWN].mask   = JB_KEY_4_Pin;
+    
+    for (uint8_t i = 0; i < 5; i++)
+    {
+      key_ctx[i].key_event = JS_NONE;
+      key_ctx[i].prev_state = js_is_button_pressed(i);
+      key_ctx[i].worker = NULL; 
+    }
 }
 
 /**
@@ -64,14 +71,14 @@ void js_main(void)
         {
             if (key_ctx[i].worker != NULL)
             {
-                key_ctx[i].worker();
+                key_ctx[i].worker(key_ctx[i].key_event == JS_PRESSED);
             }
             key_ctx[i].key_event = JS_NONE;
         }
     }
 }
 
-void js_add_worker(joystick_buttons_t butt, key_press_worker worker)
+void js_add_worker(joystick_buttons_t butt, key_event_worker worker)
 {
     key_ctx[butt].worker = worker;
 }
@@ -87,6 +94,27 @@ static void js_process_key_interrupt(joystick_buttons_t butt)
     {
         key_ctx[butt].key_event = JS_RELESED;
     }
+}
+
+/**
+ * @brief 
+ * 
+ */
+void js_read_buttons(void)
+{
+  for (uint8_t i = 0; i < 5; i++)
+  {
+    if (js_is_button_pressed(i) && key_ctx[i].prev_state == false)
+    {
+      key_ctx[i].key_event = JS_PRESSED;
+      key_ctx[i].prev_state = true;
+    }
+    else if (!js_is_button_pressed(i) && key_ctx[i].prev_state == true)
+    {
+      key_ctx[i].key_event = JS_RELESED;
+      key_ctx[i].prev_state = false;
+    }
+  }
 }
 
 /**

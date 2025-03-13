@@ -50,17 +50,21 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
-/* USER CODE END PV */
-
-/* Private function prototypes -----------------------------------------------*/
-void SystemClock_Config(void);
-/* USER CODE BEGIN PFP */
 struct print_options
 {
   uint8_t buffer[256];
   uint8_t ptr;
 }print_options;
+
+uint32_t blinking_period = 100;
+/* USER CODE END PV */
+
+/* Private function prototypes -----------------------------------------------*/
+void SystemClock_Config(void);
+/* USER CODE BEGIN PFP */
+
+static void bt_button_ok_pressed(bool pressed);
+
 int __io_putchar(int ch)
 {
   print_options.buffer[print_options.ptr] = (uint8_t)ch;
@@ -72,6 +76,7 @@ int __io_putchar(int ch)
   }
   return ch;
 }
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -110,10 +115,13 @@ int main(void)
   MX_GPIO_Init();
   MX_USART1_UART_Init();
   MX_TIM6_Init();
+  MX_TIM7_Init();
   /* USER CODE BEGIN 2 */
   HAL_UART_Init(&huart1);
   js_init();
   HAL_TIM_Base_Start_IT(&htim6);
+  HAL_TIM_Base_Start_IT(&htim7);
+  js_add_worker(JOYSTICK_BUTTON_OK, bt_button_ok_pressed);
   syslog("Start of board%d",1);
   /* USER CODE END 2 */
 
@@ -121,15 +129,8 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    // LL_GPIO_TogglePin(IND_LED_GPIO_Port, IND_LED_Pin);
-    // syslog("Hello button state UP %d|DW %d|R %d|L %d|OK %d|",
-    //  js_is_button_pressed(JOYSTICK_BUTTON_UP),
-    //  js_is_button_pressed(JOYSTICK_BUTTON_DOWN),
-    //  js_is_button_pressed(JOYSTICK_BUTTON_RIGHT),
-    //  js_is_button_pressed(JOYSTICK_BUTTON_LEFT),
-    //  js_is_button_pressed(JOYSTICK_BUTTON_OK)
-    //  ); 
-    // HAL_Delay(100);
+    // buttons worker
+    js_main();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -185,10 +186,32 @@ void SystemClock_Config(void)
 /* USER CODE BEGIN 4 */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-  LL_GPIO_TogglePin(IND_LED_GPIO_Port, IND_LED_Pin);
-  syslog("TIM6 event, %d %d", TIM6->CNT, TIM6->ARR);
-  __HAL_TIM_SetCounter(htim, 0);
-  __HAL_TIM_SetAutoreload(htim, 100);
+  if (htim == &htim6)
+  {
+    LL_GPIO_TogglePin(IND_LED_GPIO_Port, IND_LED_Pin);
+    // syslog("TIM6 event, %d %d", TIM6->CNT, TIM6->ARR);
+    __HAL_TIM_SetCounter(htim, 0);
+    __HAL_TIM_SetAutoreload(htim, blinking_period);
+  }
+  if (htim == &htim7)
+  {
+    js_read_buttons();
+    __HAL_TIM_SetCounter(htim, 0);
+    __HAL_TIM_SetAutoreload(htim, 10);
+  }
+}
+
+
+static void bt_button_ok_pressed(bool pressed)
+{
+  if (pressed)
+  {
+    blinking_period = 200;
+  }
+  else
+  {
+    blinking_period = 400;
+  }
 }
 /* USER CODE END 4 */
 
