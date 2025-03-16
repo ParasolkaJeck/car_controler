@@ -83,6 +83,8 @@ void Error_Handler(void);
 #define JB_KEY_4_Pin LL_GPIO_PIN_4
 #define JB_KEY_4_GPIO_Port GPIOA
 #define JB_KEY_4_EXTI_IRQn EXTI4_IRQn
+#define LCD_BK_Pin LL_GPIO_PIN_2
+#define LCD_BK_GPIO_Port GPIOB
 #define IND_LED_Pin LL_GPIO_PIN_4
 #define IND_LED_GPIO_Port GPIOB
 

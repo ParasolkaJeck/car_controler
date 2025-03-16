@@ -29,6 +29,7 @@
 #include "syslog.h"
 #include <stdio.h>
 #include "joystick.h"
+#include "LCD_Controller.h"
 
 /* USER CODE END Includes */
 
@@ -56,7 +57,7 @@ struct print_options
   uint8_t ptr;
 }print_options;
 
-uint32_t blinking_period = 100;
+uint32_t blinking_period = 1000;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -204,13 +205,12 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
 static void bt_button_ok_pressed(bool pressed)
 {
+  static bool lcd_state = false;
   if (pressed)
   {
-    blinking_period = 200;
-  }
-  else
-  {
-    blinking_period = 400;
+    lcd_state = !lcd_state;
+    lcd_set_backlight(lcd_state);
+    syslog("%s backlight", (lcd_state == true) ? "Disable":"Enable");
   }
 }
 /* USER CODE END 4 */
