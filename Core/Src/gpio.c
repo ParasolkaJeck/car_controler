@@ -58,6 +58,12 @@ void MX_GPIO_Init(void)
   LL_GPIO_ResetOutputPin(LCD_BK_GPIO_Port, LCD_BK_Pin);
 
   /**/
+  LL_GPIO_ResetOutputPin(NRF_CSN_GPIO_Port, NRF_CSN_Pin);
+
+  /**/
+  LL_GPIO_ResetOutputPin(NRF_CE_GPIO_Port, NRF_CE_Pin);
+
+  /**/
   LL_GPIO_ResetOutputPin(IND_LED_GPIO_Port, IND_LED_Pin);
 
   /**/
@@ -153,40 +159,20 @@ void MX_GPIO_Init(void)
   LL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /**/
-  GPIO_InitStruct.Pin = LL_GPIO_PIN_13;
-  GPIO_InitStruct.Mode = LL_GPIO_MODE_ANALOG;
+  GPIO_InitStruct.Pin = NRF_CSN_Pin;
+  GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
+  GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
   GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
-  LL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+  LL_GPIO_Init(NRF_CSN_GPIO_Port, &GPIO_InitStruct);
 
   /**/
-  GPIO_InitStruct.Pin = LL_GPIO_PIN_14;
-  GPIO_InitStruct.Mode = LL_GPIO_MODE_ANALOG;
+  GPIO_InitStruct.Pin = NRF_CE_Pin;
+  GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
+  GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
   GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
-  LL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-  /**/
-  GPIO_InitStruct.Pin = LL_GPIO_PIN_15;
-  GPIO_InitStruct.Mode = LL_GPIO_MODE_ANALOG;
-  GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
-  LL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-  /**/
-  GPIO_InitStruct.Pin = LL_GPIO_PIN_8;
-  GPIO_InitStruct.Mode = LL_GPIO_MODE_ANALOG;
-  GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
-  LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-  /**/
-  GPIO_InitStruct.Pin = LL_GPIO_PIN_9;
-  GPIO_InitStruct.Mode = LL_GPIO_MODE_ANALOG;
-  GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
-  LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-  /**/
-  GPIO_InitStruct.Pin = LL_GPIO_PIN_10;
-  GPIO_InitStruct.Mode = LL_GPIO_MODE_ANALOG;
-  GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
-  LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+  LL_GPIO_Init(NRF_CE_GPIO_Port, &GPIO_InitStruct);
 
   /**/
   GPIO_InitStruct.Pin = LL_GPIO_PIN_11;
@@ -254,6 +240,9 @@ void MX_GPIO_Init(void)
   LL_SYSCFG_SetEXTISource(LL_SYSCFG_EXTI_PORTA, LL_SYSCFG_EXTI_LINE4);
 
   /**/
+  LL_SYSCFG_SetEXTISource(LL_SYSCFG_EXTI_PORTA, LL_SYSCFG_EXTI_LINE8);
+
+  /**/
   EXTI_InitStruct.Line_0_31 = LL_EXTI_LINE_0;
   EXTI_InitStruct.LineCommand = ENABLE;
   EXTI_InitStruct.Mode = LL_EXTI_MODE_IT;
@@ -289,6 +278,13 @@ void MX_GPIO_Init(void)
   LL_EXTI_Init(&EXTI_InitStruct);
 
   /**/
+  EXTI_InitStruct.Line_0_31 = LL_EXTI_LINE_8;
+  EXTI_InitStruct.LineCommand = ENABLE;
+  EXTI_InitStruct.Mode = LL_EXTI_MODE_IT;
+  EXTI_InitStruct.Trigger = LL_EXTI_TRIGGER_RISING;
+  LL_EXTI_Init(&EXTI_InitStruct);
+
+  /**/
   LL_GPIO_SetPinPull(JB_KEY_0_GPIO_Port, JB_KEY_0_Pin, LL_GPIO_PULL_UP);
 
   /**/
@@ -304,6 +300,9 @@ void MX_GPIO_Init(void)
   LL_GPIO_SetPinPull(JB_KEY_4_GPIO_Port, JB_KEY_4_Pin, LL_GPIO_PULL_UP);
 
   /**/
+  LL_GPIO_SetPinPull(NRF_IRQ_GPIO_Port, NRF_IRQ_Pin, LL_GPIO_PULL_NO);
+
+  /**/
   LL_GPIO_SetPinMode(JB_KEY_0_GPIO_Port, JB_KEY_0_Pin, LL_GPIO_MODE_INPUT);
 
   /**/
@@ -317,6 +316,9 @@ void MX_GPIO_Init(void)
 
   /**/
   LL_GPIO_SetPinMode(JB_KEY_4_GPIO_Port, JB_KEY_4_Pin, LL_GPIO_MODE_INPUT);
+
+  /**/
+  LL_GPIO_SetPinMode(NRF_IRQ_GPIO_Port, NRF_IRQ_Pin, LL_GPIO_MODE_INPUT);
 
   /* EXTI interrupt init*/
   NVIC_SetPriority(EXTI0_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),0, 0));

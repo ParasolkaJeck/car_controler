@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "spi.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
@@ -30,6 +31,7 @@
 #include <stdio.h>
 #include "joystick.h"
 #include "LCD_Controller.h"
+#include "nrf_device.h"
 
 /* USER CODE END Includes */
 
@@ -117,6 +119,7 @@ int main(void)
   MX_USART1_UART_Init();
   MX_TIM6_Init();
   MX_TIM7_Init();
+  MX_SPI2_Init();
   /* USER CODE BEGIN 2 */
   HAL_UART_Init(&huart1);
   js_init();
@@ -124,6 +127,10 @@ int main(void)
   HAL_TIM_Base_Start_IT(&htim7);
   js_add_worker(JOYSTICK_BUTTON_OK, bt_button_ok_pressed);
   syslog("Start of board%d",1);
+  nrf_init();
+  uint8_t status_of_nrf = 0;
+  nrf_read_status(&status_of_nrf);
+  syslog("Status of nRF %d", status_of_nrf);
   /* USER CODE END 2 */
 
   /* Infinite loop */
