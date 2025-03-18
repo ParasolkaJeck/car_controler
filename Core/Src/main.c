@@ -212,12 +212,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
 static void bt_button_ok_pressed(bool pressed)
 {
-  static bool lcd_state = false;
   if (pressed)
   {
-    lcd_state = !lcd_state;
-    lcd_set_backlight(lcd_state);
-    syslog("%s backlight", (lcd_state == true) ? "Disable":"Enable");
+    uint8_t status = 55;
+    nrf_read_status(&status);
+    nrf_read_configuration(&status);
   }
 }
 /* USER CODE END 4 */
