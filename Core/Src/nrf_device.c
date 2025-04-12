@@ -71,6 +71,20 @@ int8_t nrf_init(void)
     uint8_t status;
     result = nrf_read_status(&status);
     syslog("Init nrf %d|%d", result, status);
+    nrf_write_configuration(0x08);
+    nrf_read_configuration(&status);
+    syslog("Init nrf %d|%d", result, status);
+    return result;
+}
+
+int8_t nrf_write_configuration(uint8_t configuration)
+{
+    int8_t result = 0;
+    const uint8_t command = NRF_CMD_WRITE_MASK | NRF24_REG_CONFIG;
+    if (_nrf_transmit_receive_data(&command, &configuration, sizeof(command)))
+    {
+        result = -1;
+    }
     return result;
 }
 
@@ -108,8 +122,9 @@ static bool _nrf_transmit_receive_data(const uint8_t *tx, uint8_t *rx, uint32_t 
     }
     else
     {
-        syslog("Transmit ok");
+        // syslog("Transmit ok");
     }
+    NRF_CS_DISABLE;
     return result;
 }
 
