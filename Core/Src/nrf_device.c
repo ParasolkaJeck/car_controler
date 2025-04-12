@@ -10,6 +10,8 @@ extern SPI_HandleTypeDef hspi2;
 
 static bool _nrf_transmit_receive_data(const uint8_t *tx, uint8_t *rx, uint32_t size);
 static bool _nrf_read_register(uint8_t reg, uint8_t *value);
+static bool _nrf_write_register(uint8_t reg, uint8_t value);
+
 #define NRF_CS_ENABLE   LL_GPIO_ResetOutputPin(NRF_CSN_GPIO_Port, NRF_CSN_Pin)
 #define NRF_CS_DISABLE  LL_GPIO_SetOutputPin(NRF_CSN_GPIO_Port, NRF_CSN_Pin)
 #define NRF_SPI_TIMEOUT (100)
@@ -79,35 +81,63 @@ typedef enum
 #define nRF24_MASK_PLOS_CNT        (uint8_t)0xF0 // Mask for PLOS_CNT[7:4] bits in OBSERVE_TX register
 #define nRF24_MASK_ARC_CNT         (uint8_t)0x0F // Mask for ARC_CNT[3:0] bits in OBSERVE_TX register
 
+uint8_t default_state_of_registers[nRF24_MASK_REG_MAP] = 
+{
+    [NRF24_REG_CONFIG] = 0x08,
+    [NRF24_REG_EN_AA] = 0x3F,
+    [NRF24_REG_EN_RXADDR] = 0x03,
+    [NRF24_REG_SETUP_AW] = 0x03,
+    [NRF24_REG_SETUP_RETR] = 0x03,
+    [NRF24_REG_RF_CH] = 0x02,
+    [NRF24_REG_RF_SETUP] = 0x0E,
+    [NRF24_REG_STATUS] = 0x0E,
+    [NRF24_REG_OBSERVE_TX] = 0xFF, // invalid to write
+    [NRF24_REG_RPD] = 0xFF, //invalid to write
+    [NRF24_REG_RX_ADDR_P0] = 0x00,
+    [NRF24_REG_RX_ADDR_P1] = 0x00,
+    [NRF24_REG_RX_ADDR_P2] = 0x00,
+    [NRF24_REG_RX_ADDR_P3] = 0x00,
+    [NRF24_REG_RX_ADDR_P4] = 0x00,
+    [NRF24_REG_RX_ADDR_P5] = 0x00,
+    [NRF24_REG_TX_ADDR] = 0x00,
+    [NRF24_REG_RX_PW_P0] = 0x00,
+    [NRF24_REG_RX_PW_P1] = 0x00,
+    [NRF24_REG_RX_PW_P2] = 0x00,
+    [NRF24_REG_RX_PW_P3] = 0x00,
+    [NRF24_REG_RX_PW_P4] = 0x00,
+    [NRF24_REG_RX_PW_P5] = 0x00,
+    [NRF24_REG_FIFO_STATUS] = 0xFF,
+    [NRF24_REG_DYNPD] = 0x00,
+    [NRF24_REG_FEATURE] = 0x00,
+};
+
 int8_t nrf_init(void)
 {
     int8_t result = 0; 
     NRF_CS_DISABLE;
-    // uint8_t status;
-    // result = nrf_read_status(&status);
-    // syslog("Init nrf %d|%d", result, status);
-    // nrf_write_configuration(0x08);
-    // nrf_read_configuration(&status);
-    // syslog("Init nrf %d|%d", result, status);
     nrf_print_full_reg_status();
+    // for (uint8_t i = 0; i < sizeof(default_state_of_registers); i++)
+    // {
+    //     if (default_state_of_registers[i] == 0xFF)
+    //     {
+    //         continue; // Skip invalid registers
+    //     }
+    //     _nrf_write_register(i, default_state_of_registers[i]);
+    // }
+    // nrf_print_full_reg_status();
     return result;
 }
 
+/**
+ * @brief Function to write the configuration register of nRF24L01+.
+ * 
+ * @param configuration configuration value to write
+ * @return int8_t 
+ */
 int8_t nrf_write_configuration(uint8_t configuration)
 {
     int8_t result = 0;
-    uint8_t status;
-    const uint8_t command = NRF_CMD_WRITE_MASK | (nRF24_MASK_REG_MAP & NRF24_REG_CONFIG);
-    // Send command to write configuration
-    if (_nrf_transmit_receive_data(&command, &status, sizeof(command)))
-    {
-        result = -1;
-    }
-    // Send configuration value
-    if (_nrf_transmit_receive_data(&configuration, &status, sizeof(command)))
-    {
-        result = -1;
-    }
+    _nrf_write_register(NRF24_REG_CONFIG, configuration);
     return result;
 }
 
@@ -116,7 +146,6 @@ int8_t nrf_read_status(uint8_t *status)
     int8_t result = 0;
     *status = 0;
     const uint8_t command = NRF_CMD_NOP;
-    
     if (_nrf_transmit_receive_data(&command, status, 1))
     {
         result = -1;
@@ -125,14 +154,30 @@ int8_t nrf_read_status(uint8_t *status)
     return result;
 }
 
+/**
+ * @brief Function to read the configuration register of nRF24L01+.
+ * 
+ * @param configuration pointer to the variable to store the configuration value
+ * @return int8_t result of the operation
+ */
 int8_t nrf_read_configuration(uint8_t *configuration)
 {
-    const uint8_t command = NRF_CMD_READ_MASK | NRF24_REG_CONFIG;
-    _nrf_transmit_receive_data(&command, configuration, sizeof(command));
+    int8_t result = 0;
+    if (_nrf_read_register(NRF24_REG_CONFIG, configuration))
+    {
+        result = -1;
+    }
     syslog("Now config %d", *configuration);
-    return 0;
+    return result;
 }
 
+/**
+ * @brief debug function to print all registers of nRF24L01+.
+ * 
+ * @return int8_t result of the operation
+ * @note This function is used for debugging purposes only.
+ *       It reads all registers of the nRF24L01+ and prints their values.
+ */
 int8_t nrf_print_full_reg_status(void)
 {
     int8_t result = 0;
@@ -156,6 +201,15 @@ int8_t nrf_print_full_reg_status(void)
     return result;
 }
 
+/**
+ * @brief Function to transmit and receive data from nRF24L01+.
+ * 
+ * @param tx pointer to the buffer to transmit data
+ * @param rx pointer to the buffer to receive data
+ * @param size number of bytes to transmit and receive
+ * @return true Error is occurred
+ * @return false operation is successful
+ */
 static bool _nrf_transmit_receive_data(const uint8_t *tx, uint8_t *rx, uint32_t size)
 {
     bool result = false; 
@@ -165,13 +219,17 @@ static bool _nrf_transmit_receive_data(const uint8_t *tx, uint8_t *rx, uint32_t 
         syslog("Transmit error, %d", (int)transmit_res);
         result = true;
     }
-    else
-    {
-        // syslog("Transmit ok");
-    }
     return result;
 }
 
+/**
+ * @brief Function to read a register of nRF24L01+.
+ * 
+ * @param reg register address to read
+ * @param value pointer to the variable to store the register value
+ * @return true error is occurred
+ * @return false operation is successful
+ */
 static bool _nrf_read_register(uint8_t reg, uint8_t *value)
 {
     bool result = false;
@@ -185,6 +243,35 @@ static bool _nrf_read_register(uint8_t reg, uint8_t *value)
     }
     command = NRF_CMD_NOP;
     result = _nrf_transmit_receive_data(&command, value, sizeof(command));
+    if (result)
+    {
+        NRF_CS_DISABLE;
+        return true;
+    }
+    NRF_CS_DISABLE;
+    return result;
+}
+
+/**
+ * @brief Function to write a register of nRF24L01+.
+ * 
+ * @param reg register address to write
+ * @param value value to write to the register
+ * @return true error is occurred
+ * @return false operation is successful
+ */
+static bool _nrf_write_register(uint8_t reg, uint8_t value)
+{
+    bool result = false;
+    uint8_t command = NRF_CMD_WRITE_MASK | (nRF24_MASK_REG_MAP & reg);
+    NRF_CS_ENABLE;
+    result = _nrf_transmit_receive_data(&command, &value, sizeof(command));
+    if (result)
+    {
+        NRF_CS_DISABLE;
+        return true;
+    }
+    result = _nrf_transmit_receive_data(&value, &command, sizeof(command));
     if (result)
     {
         NRF_CS_DISABLE;
