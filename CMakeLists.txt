@@ -52,6 +52,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user sources here
     "${CMAKE_CURRENT_SOURCE_DIR}/joystick.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/LCD_Controller.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/nrf_device.c"
 )
 
 # Add include paths

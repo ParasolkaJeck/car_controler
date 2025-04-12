@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "spi.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
@@ -30,6 +31,7 @@
 #include <stdio.h>
 #include "joystick.h"
 #include "LCD_Controller.h"
+#include "nrf_device.h"
 
 /* USER CODE END Includes */
 
@@ -117,6 +119,7 @@ int main(void)
   MX_USART1_UART_Init();
   MX_TIM6_Init();
   MX_TIM7_Init();
+  MX_SPI2_Init();
   /* USER CODE BEGIN 2 */
   HAL_UART_Init(&huart1);
   js_init();
@@ -124,6 +127,7 @@ int main(void)
   HAL_TIM_Base_Start_IT(&htim7);
   js_add_worker(JOYSTICK_BUTTON_OK, bt_button_ok_pressed);
   syslog("Start of board%d",1);
+  nrf_init();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -205,12 +209,14 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
 static void bt_button_ok_pressed(bool pressed)
 {
-  static bool lcd_state = false;
   if (pressed)
   {
-    lcd_state = !lcd_state;
-    lcd_set_backlight(lcd_state);
-    syslog("%s backlight", (lcd_state == true) ? "Disable":"Enable");
+    uint8_t status = 55;
+    // nrf_write_configuration(0x08);
+    // // syslog("Status of nRF %d", status);
+    // nrf_read_configuration(&status);
+    // syslog("Config of nRF %d", status);
+    nrf_print_full_reg_status();
   }
 }
 /* USER CODE END 4 */

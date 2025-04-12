@@ -85,6 +85,12 @@ void Error_Handler(void);
 #define JB_KEY_4_EXTI_IRQn EXTI4_IRQn
 #define LCD_BK_Pin LL_GPIO_PIN_2
 #define LCD_BK_GPIO_Port GPIOB
+#define NRF_IRQ_Pin LL_GPIO_PIN_8
+#define NRF_IRQ_GPIO_Port GPIOA
+#define NRF_CSN_Pin LL_GPIO_PIN_9
+#define NRF_CSN_GPIO_Port GPIOA
+#define NRF_CE_Pin LL_GPIO_PIN_10
+#define NRF_CE_GPIO_Port GPIOA
 #define IND_LED_Pin LL_GPIO_PIN_4
 #define IND_LED_GPIO_Port GPIOB
 
