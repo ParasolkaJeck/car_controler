@@ -58,13 +58,13 @@ void MX_GPIO_Init(void)
   LL_GPIO_ResetOutputPin(LCD_BK_GPIO_Port, LCD_BK_Pin);
 
   /**/
-  LL_GPIO_ResetOutputPin(NRF_CSN_GPIO_Port, NRF_CSN_Pin);
-
-  /**/
   LL_GPIO_ResetOutputPin(NRF_CE_GPIO_Port, NRF_CE_Pin);
 
   /**/
   LL_GPIO_ResetOutputPin(IND_LED_GPIO_Port, IND_LED_Pin);
+
+  /**/
+  LL_GPIO_SetOutputPin(NRF_CSN_GPIO_Port, NRF_CSN_Pin);
 
   /**/
   GPIO_InitStruct.Pin = LL_GPIO_PIN_13;

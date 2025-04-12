@@ -63,6 +63,21 @@ typedef enum
 #define NRF24_REG_DYNPD             0x1C
 #define NRF24_REG_FEATURE           0x1D
 
+// Register masks definitions
+#define nRF24_MASK_REG_MAP         (uint8_t)0x1F // Mask bits[4:0] for CMD_RREG and CMD_WREG commands
+#define nRF24_MASK_CRC             (uint8_t)0x0C // Mask for CRC bits [3:2] in CONFIG register
+#define nRF24_MASK_STATUS_IRQ      (uint8_t)0x70 // Mask for all IRQ bits in STATUS register
+#define nRF24_MASK_RF_PWR          (uint8_t)0x06 // Mask RF_PWR[2:1] bits in RF_SETUP register
+#define nRF24_MASK_RX_P_NO         (uint8_t)0x0E // Mask RX_P_NO[3:1] bits in STATUS register
+#define nRF24_MASK_DATARATE        (uint8_t)0x28 // Mask RD_DR_[5,3] bits in RF_SETUP register
+#define nRF24_MASK_EN_RX           (uint8_t)0x3F // Mask ERX_P[5:0] bits in EN_RXADDR register
+#define nRF24_MASK_RX_PW           (uint8_t)0x3F // Mask [5:0] bits in RX_PW_Px register
+#define nRF24_MASK_RETR_ARD        (uint8_t)0xF0 // Mask for ARD[7:4] bits in SETUP_RETR register
+#define nRF24_MASK_RETR_ARC        (uint8_t)0x0F // Mask for ARC[3:0] bits in SETUP_RETR register
+#define nRF24_MASK_RXFIFO          (uint8_t)0x03 // Mask for RX FIFO status bits [1:0] in FIFO_STATUS register
+#define nRF24_MASK_TXFIFO          (uint8_t)0x30 // Mask for TX FIFO status bits [5:4] in FIFO_STATUS register
+#define nRF24_MASK_PLOS_CNT        (uint8_t)0xF0 // Mask for PLOS_CNT[7:4] bits in OBSERVE_TX register
+#define nRF24_MASK_ARC_CNT         (uint8_t)0x0F // Mask for ARC_CNT[3:0] bits in OBSERVE_TX register
 
 int8_t nrf_init(void)
 {
@@ -80,8 +95,15 @@ int8_t nrf_init(void)
 int8_t nrf_write_configuration(uint8_t configuration)
 {
     int8_t result = 0;
-    const uint8_t command = NRF_CMD_WRITE_MASK | NRF24_REG_CONFIG;
-    if (_nrf_transmit_receive_data(&command, &configuration, sizeof(command)))
+    uint8_t status;
+    const uint8_t command = NRF_CMD_WRITE_MASK | (nRF24_MASK_REG_MAP & NRF24_REG_CONFIG);
+    // Send command to write configuration
+    if (_nrf_transmit_receive_data(&command, &status, sizeof(command)))
+    {
+        result = -1;
+    }
+    // Send configuration value
+    if (_nrf_transmit_receive_data(&configuration, &status, sizeof(command)))
     {
         result = -1;
     }
