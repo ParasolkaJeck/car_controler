@@ -9,7 +9,7 @@
 extern SPI_HandleTypeDef hspi2;
 
 static bool _nrf_transmit_receive_data(const uint8_t *tx, uint8_t *rx, uint32_t size);
-
+static bool _nrf_read_register(uint8_t reg, uint8_t *value);
 #define NRF_CS_ENABLE   LL_GPIO_ResetOutputPin(NRF_CSN_GPIO_Port, NRF_CSN_Pin)
 #define NRF_CS_DISABLE  LL_GPIO_SetOutputPin(NRF_CSN_GPIO_Port, NRF_CSN_Pin)
 #define NRF_SPI_TIMEOUT (100)
@@ -83,12 +83,13 @@ int8_t nrf_init(void)
 {
     int8_t result = 0; 
     NRF_CS_DISABLE;
-    uint8_t status;
-    result = nrf_read_status(&status);
-    syslog("Init nrf %d|%d", result, status);
-    nrf_write_configuration(0x08);
-    nrf_read_configuration(&status);
-    syslog("Init nrf %d|%d", result, status);
+    // uint8_t status;
+    // result = nrf_read_status(&status);
+    // syslog("Init nrf %d|%d", result, status);
+    // nrf_write_configuration(0x08);
+    // nrf_read_configuration(&status);
+    // syslog("Init nrf %d|%d", result, status);
+    nrf_print_full_reg_status();
     return result;
 }
 
@@ -132,10 +133,32 @@ int8_t nrf_read_configuration(uint8_t *configuration)
     return 0;
 }
 
+int8_t nrf_print_full_reg_status(void)
+{
+    int8_t result = 0;
+    uint8_t registers_to_read[] = {NRF24_REG_CONFIG, NRF24_REG_EN_AA, NRF24_REG_EN_RXADDR,
+                                   NRF24_REG_SETUP_AW, NRF24_REG_SETUP_RETR, NRF24_REG_RF_CH,
+                                   NRF24_REG_RF_SETUP, NRF24_REG_STATUS, NRF24_REG_OBSERVE_TX,
+                                   NRF24_REG_RPD, NRF24_REG_RX_ADDR_P0, NRF24_REG_RX_ADDR_P1,
+                                   NRF24_REG_RX_ADDR_P2, NRF24_REG_RX_ADDR_P3, NRF24_REG_RX_ADDR_P4,
+                                   NRF24_REG_RX_ADDR_P5, NRF24_REG_TX_ADDR, NRF24_REG_RX_PW_P0,
+                                   NRF24_REG_RX_PW_P1, NRF24_REG_RX_PW_P2, NRF24_REG_RX_PW_P3,
+                                   NRF24_REG_RX_PW_P4, NRF24_REG_RX_PW_P5, NRF24_REG_FIFO_STATUS,
+                                   NRF24_REG_DYNPD, NRF24_REG_FEATURE};
+    uint8_t status;
+    for (uint8_t i = 0; i < sizeof(registers_to_read); i++)
+    {
+        NRF_CS_ENABLE;
+        _nrf_read_register(registers_to_read[i], &status);
+        NRF_CS_DISABLE;
+        syslog("Register 0x%2X:0x%2X", registers_to_read[i], status);
+    }
+    return result;
+}
+
 static bool _nrf_transmit_receive_data(const uint8_t *tx, uint8_t *rx, uint32_t size)
 {
     bool result = false; 
-    NRF_CS_ENABLE;
     HAL_StatusTypeDef transmit_res = HAL_SPI_TransmitReceive(&hspi2, tx, rx, size, NRF_SPI_TIMEOUT);  
     if (transmit_res != HAL_OK)
     {
@@ -146,7 +169,27 @@ static bool _nrf_transmit_receive_data(const uint8_t *tx, uint8_t *rx, uint32_t 
     {
         // syslog("Transmit ok");
     }
-    NRF_CS_DISABLE;
     return result;
 }
 
+static bool _nrf_read_register(uint8_t reg, uint8_t *value)
+{
+    bool result = false;
+    uint8_t command = NRF_CMD_READ_MASK | (nRF24_MASK_REG_MAP & reg);
+    NRF_CS_ENABLE;
+    result = _nrf_transmit_receive_data(&command, value, sizeof(command));
+    if (result)
+    {
+        NRF_CS_DISABLE;
+        return true;
+    }
+    command = NRF_CMD_NOP;
+    result = _nrf_transmit_receive_data(&command, value, sizeof(command));
+    if (result)
+    {
+        NRF_CS_DISABLE;
+        return true;
+    }
+    NRF_CS_DISABLE;
+    return result;
+}

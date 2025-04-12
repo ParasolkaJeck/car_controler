@@ -215,10 +215,11 @@ static void bt_button_ok_pressed(bool pressed)
   if (pressed)
   {
     uint8_t status = 55;
-    nrf_write_configuration(0x08);
-    // syslog("Status of nRF %d", status);
-    nrf_read_configuration(&status);
-    syslog("Config of nRF %d", status);
+    // nrf_write_configuration(0x08);
+    // // syslog("Status of nRF %d", status);
+    // nrf_read_configuration(&status);
+    // syslog("Config of nRF %d", status);
+    nrf_print_full_reg_status();
   }
 }
 /* USER CODE END 4 */
