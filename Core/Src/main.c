@@ -128,9 +128,6 @@ int main(void)
   js_add_worker(JOYSTICK_BUTTON_OK, bt_button_ok_pressed);
   syslog("Start of board%d",1);
   nrf_init();
-  uint8_t status_of_nrf = 0;
-  nrf_read_status(&status_of_nrf);
-  syslog("Status of nRF %d", status_of_nrf);
   /* USER CODE END 2 */
 
   /* Infinite loop */
